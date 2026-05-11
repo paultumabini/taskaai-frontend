@@ -1,0 +1,301 @@
+/**
+ * BoardPage.module.css — Kanban board layout styles
+ *
+ * Layout hierarchy:
+ *   .page          → full viewport height flex column
+ *   .topbar        → fixed-height header bar (flex row)
+ *   .statsRow      → KPI cards row (flex, wraps on narrow screens)
+ *   .boardArea     → scrollable container for the kanban columns
+ *   .board         → flex row of columns (min-width:max-content prevents column squishing)
+ *   .col           → individual column (fixed width, flex column)
+ *   .colBody       → scrollable task list within a column (overflow:visible for move menus)
+ *
+ * Key decision — overflow:visible on .colBody:
+ *   Task cards have a move dropdown menu that must render outside the card bounds.
+ *   If .colBody used overflow:hidden or overflow:auto, the menu would be clipped.
+ *   overflow:visible allows the menu to render on top of adjacent content.
+ *   The column itself uses overflow:hidden at the .boardArea level to keep
+ *   horizontal scrolling working correctly.
+ *
+ * Horizontal scrollbar styling:
+ *   The .boardArea scrollbar is explicitly styled to be 10px tall and visually
+ *   prominent so users know they can scroll horizontally.
+ */
+
+/* ── Page shell ── */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;    /* never compress the topbar when board content is tall */
+  min-height: 64px;
+}
+
+/**
+ * .hamburgerBtn — re-open sidebar button, lives inside the topbar
+ * Using flex-shrink:0 ensures it never gets squeezed by the title.
+ * Transition on background gives smooth hover feedback.
+ */
+.hamburgerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--txt2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.hamburgerBtn:hover {
+  background: var(--bg3);
+  color: var(--accent2);
+  border-color: var(--accent);
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 500;
+  flex: 1;          /* fills remaining space, pushing Add Task button to the right */
+  min-width: 0;     /* allows title to truncate on narrow screens */
+}
+
+/** Small muted project name shown after the main title */
+.projectBadge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--txt3);
+  margin-left: 10px;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--accent);
+  color: white;
+  flex-shrink: 0;
+  transition: background .15s, transform .15s;
+}
+.btnPrimary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* Compact icon-only control used for topbar theme toggle. */
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt2);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  transition: all .15s;
+}
+.iconBtn:hover {
+  color: var(--accent2);
+  border-color: var(--accent);
+  background: var(--bg3);
+}
+
+/* ── Stats row ── */
+.statsRow {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 0;
+  flex-shrink: 0;
+  flex-wrap: wrap;   /* wraps to two rows on very narrow screens */
+}
+
+/**
+ * .statCard — individual KPI tile
+ * The ::before pseudo-element draws a 2px coloured stripe at the top.
+ * The stripe colour is injected via --accent-c CSS variable from the component.
+ * overflow:hidden clips the ::before stripe to the card's border-radius.
+ */
+.statCard {
+  flex: 1;
+  min-width: 120px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-c);  /* injected per-card via inline style */
+}
+.statLabel { font-size: 11px; color: var(--txt3); text-transform: uppercase; letter-spacing: .07em; font-weight: 500; }
+.statVal   { font-size: 24px; font-weight: 600; margin: 3px 0 1px; letter-spacing: -.5px; }
+.statSub   { font-size: 11px; color: var(--txt3); }
+
+/* ── Board scroll container ── */
+
+/**
+ * .boardArea — the outer horizontally-scrollable container
+ *
+ * overflow-x:auto enables horizontal scrolling when columns exceed viewport width.
+ * overflow-y:hidden prevents vertical scroll on the container itself —
+ * each individual column body scrolls vertically instead.
+ *
+ * Scrollbar styling: made 10px tall and visually styled so users notice
+ * they can scroll horizontally (thin system scrollbars are often invisible).
+ */
+.boardArea {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 18px 24px 20px;
+  scrollbar-width: thick;                        /* Firefox */
+  scrollbar-color: var(--border2) var(--bg3);    /* Firefox: thumb track */
+}
+.boardArea::-webkit-scrollbar        { height: 10px; }
+.boardArea::-webkit-scrollbar-track  { background: var(--bg3); border-radius: 10px; margin: 0 24px; }
+.boardArea::-webkit-scrollbar-thumb  { background: var(--border2); border-radius: 10px; border: 2px solid var(--bg3); }
+.boardArea::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/** .board — flex row of all columns, min-width prevents columns from squishing */
+.board {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  min-width: max-content;  /* forces the board to be as wide as all columns need */
+}
+
+/* ── Individual columns ── */
+
+/** Each column is 320px wide — wider than default gives cards room to breathe */
+.col {
+  width: 320px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.colHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.colDot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.colTitle { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--txt2); }
+.colCount { margin-left: auto; font-size: 11px; color: var(--txt3); background: var(--bg3); padding: 1px 8px; border-radius: 20px; }
+
+/**
+ * .colBody — the droppable area for tasks
+ *
+ * overflow:visible is intentional — task card move menus must render outside
+ * the card bounds without being clipped. The colBody itself doesn't scroll;
+ * the content just extends downward and the .boardArea handles any overflow.
+ *
+ * border: 2px solid transparent — reserves space for the drag highlight border
+ * so the column doesn't shift/jump when the border becomes visible on dragover.
+ *
+ * transition on background and border-color gives smooth drag-enter/leave feedback.
+ */
+.colBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: background .15s, border-color .15s;
+  min-height: 80px;
+  overflow-y: auto;
+  overflow-x: visible;
+  scrollbar-width: thin;
+}
+
+/** Drag-over highlight — applied when a card is dragged over this column */
+.colBody.dragOver {
+  background: rgba(124, 106, 247, .07);
+  border-color: rgba(124, 106, 247, .3);
+}
+
+/** Empty column placeholder — also serves as a visual drop target */
+.colEmpty {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  color: var(--txt3);
+  font-size: 12px;
+  transition: all .15s;
+}
+/** Highlight empty column when a card is dragged over it */
+.colEmptyDrag {
+  border-color: var(--accent);
+  color: var(--accent2);
+  background: rgba(124, 106, 247, .06);
+}
+
+/* ── Loading skeleton ── */
+
+/** Row of skeleton columns shown while data is being fetched */
+.loadingRow {
+  display: flex;
+  gap: 16px;
+  padding: 18px 24px;
+  flex: 1;
+}
+
+/**
+ * .skeletonCol — animated placeholder column
+ * shimmer animation pulses opacity to simulate loading activity.
+ * Same dimensions as real columns so the layout doesn't shift on load.
+ */
+.skeletonCol {
+  width: 320px;
+  min-width: 320px;
+  height: 280px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/** Empty project state */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: .4; }
+  50%       { opacity: .7; }
+}

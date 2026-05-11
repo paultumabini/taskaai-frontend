@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0f0f13;
+  --bg2:      #17171e;
+  --bg3:      #1e1e28;
+  --bg4:      #252532;
+  --border:   #2e2e3e;
+  --border2:  #3a3a50;
+  --txt:      #e8e8f0;
+  --txt2:     #9898b0;
+  --txt3:     #5a5a75;
+  --accent:   #7c6af7;
+  --accent2:  #a594ff;
+  --accent-g: rgba(124,106,247,.18);
+  --green:    #4ade80;
+  --amber:    #fbbf24;
+  --red:      #f87171;
+  --blue:     #60a5fa;
+  --purple:   #c084fc;
+  --radius:   12px;
+  --radius-sm:8px;
+  font-size: 16px;
+}
+
+[data-theme='light'] {
+  --bg:       #f4f5fb;
+  --bg2:      #ffffff;
+  --bg3:      #f2f3fa;
+  --bg4:      #ebeef8;
+  --border:   #dde1ef;
+  --border2:  #cfd6ea;
+  --txt:      #1d2333;
+  --txt2:     #4f5b78;
+  --txt3:     #7b88a8;
+  --accent:   #6f5cf5;
+  --accent2:  #5946dd;
+  --accent-g: rgba(111,92,245,.14);
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select, textarea {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--txt);
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input::placeholder, textarea::placeholder { color: var(--txt3); }
+select { -webkit-appearance: none; cursor: pointer; }
+textarea { resize: none; line-height: 1.5; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* Utilities */
+.serif { font-family: 'Playfair Display', serif; }
+.muted { color: var(--txt2); }
+.hint  { color: var(--txt3); }

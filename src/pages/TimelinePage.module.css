@@ -1,0 +1,563 @@
+/**
+ * TimelinePage.module.css — Gantt-style timeline layout
+ *
+ * Layout strategy:
+ * ─────────────────
+ * The page is a flex column. The main gantt area uses overflow-x:auto
+ * so the wide date grid scrolls horizontally while the topbar and
+ * today banner remain fixed at the top.
+ *
+ * The gantt grid uses a two-column layout per row:
+ *   [labelCol — fixed 220px] [barArea — flex:1, position:relative]
+ *
+ * Why position:relative on barArea:
+ *   All bars, the today line, and weekend shading are absolutely positioned
+ *   children of barArea. position:relative on the parent establishes the
+ *   coordinate system so left:X% is relative to the bar area width, not
+ *   the viewport. This makes all bars automatically scale with any screen size.
+ *
+ * Why overflow:visible on the task rows:
+ *   The hover tooltip uses position:absolute and must visually escape the
+ *   row's bounds. overflow:hidden would clip it. The scroll container
+ *   (.scrollArea) has overflow:auto which still constrains overall scroll.
+ *
+ * Day column width:
+ *   Each day column in .daysHeader uses width: calc(100% / 63) = 1/63 of the
+ *   total header width. Bars use percentage-based left/width to match.
+ *   The header and bars stay aligned because they share the same parent width.
+ */
+
+/* ── Page shell ── */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 64px;
+}
+
+/** Pushes the theme control to the right on the empty (no project) state */
+.topbarSpacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Theme toggle — matches Board / Analytics */
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt2);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  transition: all .15s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.iconBtn:hover {
+  color: var(--accent2);
+  border-color: var(--accent);
+  background: var(--bg3);
+}
+.projectBadge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--txt3);
+  margin-left: 10px;
+}
+
+/* Priority/overdue legend in topbar — full width on narrow viewports (flex-wrap) */
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  flex: 1 1 100%;
+  justify-content: flex-end;
+}
+@media (min-width: 900px) {
+  .legend {
+    flex: 0 1 auto;
+    width: auto;
+  }
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--txt2);
+}
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+  flex-shrink: 0;
+}
+
+/* ── Today banner ── */
+.todayBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  background: rgba(124, 106, 247, .07);
+  border-bottom: 1px solid rgba(124, 106, 247, .15);
+  font-size: 13px;
+  color: var(--txt2);
+  flex-shrink: 0;
+}
+.todayBanner strong { color: var(--txt); }
+
+/* ── Scroll container ── */
+
+/**
+ * .scrollArea — the horizontally scrollable outer container.
+ * overflow-x:auto enables horizontal scroll for wide date grids.
+ * overflow-y:auto enables vertical scroll for many task rows.
+ * flex:1 fills all remaining page height below the topbar and banner.
+ */
+.scrollArea {
+  flex: 1;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.scrollArea::-webkit-scrollbar       { width: 6px; height: 8px; }
+.scrollArea::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── Gantt container ── */
+.gantt {
+  min-width: 1100px;     /* prevents the grid from collapsing on narrow screens */
+  padding: 0 24px 32px;
+}
+
+/* ── Header row ── */
+
+/**
+ * .headerRow — sticky top row showing day/date column headers.
+ * position:sticky + top:0 pins it during vertical scroll so day labels
+ * always remain visible as you scroll down through task rows.
+ * z-index:10 ensures it renders above the bar area content.
+ */
+.headerRow {
+  display: flex;
+  align-items: stretch;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  padding: 22px 0 4px;  /* reserve vertical space for month labels */
+  overflow: visible;
+}
+
+.labelColHeader {
+  width: 220px;
+  min-width: 220px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding-left: 4px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4px;
+}
+
+/**
+ * .daysHeader — container for all 63 day cells.
+ * Uses flex with each child taking equal width (flex:1).
+ * This creates 63 equal-width columns whose total matches .barArea width,
+ * keeping bar positions perfectly aligned with day column headers.
+ */
+.daysHeader {
+  flex: 1;
+  display: flex;
+}
+
+/**
+ * .dayCell — individual day column header.
+ * flex:1 gives each day equal width (total/63).
+ * min-width:14px prevents collapse on very narrow screens.
+ */
+.dayCell {
+  flex: 1;
+  min-width: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1px;
+  padding-top: 10px;   /* reserve an internal lane above day numbers */
+  padding-bottom: 4px;
+  position: relative;
+  cursor: default;
+  overflow: visible;
+}
+
+/** Highlight today's column header */
+.todayCell {
+  background: rgba(124, 106, 247, .08);
+  border-radius: 4px 4px 0 0;
+}
+.todayCell .dayNum { color: var(--accent2); font-weight: 700; }
+
+/** Subtle dim for weekend columns */
+.weekendCell { opacity: .5; }
+
+/** Left border on Monday to visually group weeks */
+.mondayCell { border-left: 1px solid var(--border); }
+
+/** Month name appears above the day number on the 1st of each month */
+.monthLabel {
+  position: absolute;
+  top: -12px;          /* render above day numbers, within header top padding */
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  line-height: 1;
+}
+.dayNum  { font-size: 11px; font-weight: 500; color: var(--txt2); }
+.dayName { font-size: 9px;  color: var(--txt3); }
+
+/* ── Task rows ── */
+
+.taskRow {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  min-height: 44px;
+  transition: background .12s;
+  overflow: visible;     /* allows tooltip to escape row bounds */
+  position: relative;
+}
+.taskRowHovered { background: rgba(255,255,255,.02); }
+
+/**
+ * .labelCol — fixed-width left column showing task title.
+ * width:220px matches .labelColHeader so title and bar stay aligned.
+ * overflow:hidden + text-overflow:ellipsis truncates long titles.
+ */
+.labelCol {
+  width: 220px;
+  min-width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px 0 4px;
+  overflow: hidden;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.taskLabel {
+  font-size: 12.5px;
+  color: var(--txt2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/** ✦ star prefix on AI-ranked tasks */
+.aiStar {
+  color: var(--accent2);
+  font-size: 10px;
+  margin-right: 3px;
+}
+
+/** Small red pill for overdue tasks in the label column */
+.overduePill {
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: rgba(248,113,113,.15);
+  color: var(--red);
+  border: 1px solid rgba(248,113,113,.3);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/** Small green pill for done tasks in the label column */
+.donePill {
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: rgba(74,222,128,.12);
+  color: var(--green);
+  border: 1px solid rgba(74,222,128,.3);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Bar area ── */
+
+/**
+ * .barArea — the right side where gantt bars are drawn.
+ * position:relative establishes the coordinate origin for all absolutely
+ * positioned children (bars, today line, weekend shading, tooltip).
+ * flex:1 fills all space to the right of the label column.
+ */
+.barArea {
+  flex: 1;
+  position: relative;
+  height: 55px;
+  display: flex;
+  align-items: center;
+}
+
+/**
+ * .todayLine — vertical red line marking today's date.
+ * left% is calculated from: (today - rangeStart) / totalDays * 100
+ * height:100vh ensures it spans the full visible height of the gantt.
+ * pointer-events:none prevents it from blocking mouse events on bars.
+ * z-index:2 renders it above weekend shading but below bars (z-index:3).
+ */
+.todayLine {
+  position: absolute;
+  top: -100px;
+  bottom: -100px;
+  width: 2px;
+  background: rgba(124, 106, 247, .6);
+  pointer-events: none;
+  z-index: 2;
+}
+.todayLine::after {
+  content: 'TODAY';
+  position: absolute;
+  top: 100px;
+  left: 4px;
+  font-size: 9px;
+  color: var(--accent2);
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
+/**
+ * .weekendShade — subtle shading behind Sat/Sun columns.
+ * Positioned absolutely inside barArea at the correct day percentage.
+ * pointer-events:none so it doesn't intercept mouse events.
+ * z-index:1 renders behind today line and bars.
+ */
+.weekendShade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(255,255,255,.018);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/**
+ * .bar — the Gantt task bar.
+ * position:absolute with left% and width% positions it within barArea.
+ * min-width:4px ensures even single-day tasks are clickable/visible.
+ * border-left is thicker (3px) to emphasise the start of the task.
+ * overflow:hidden clips the text label to the bar bounds.
+ * z-index:3 renders above shading and today line.
+ */
+.bar {
+  position: absolute;
+  height: 26px;
+  border-radius: 5px;
+  border: 1.5px solid;
+  border-left-width: 3px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  cursor: pointer;
+  min-width: 4px;
+  overflow: hidden;
+  z-index: 3;
+  transition: filter .15s, transform .1s;
+  white-space: nowrap;
+}
+.bar:hover {
+  filter: brightness(1.15);
+  transform: scaleY(1.08);
+}
+
+/** Overdue bars get a pulsing red shadow */
+.barOverdue {
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, .4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/** Text label inside the bar — hidden when bar is too narrow */
+.barLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0,0,0,.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/** Arrow indicators when bar is clipped by the visible date range */
+.clipLeft  { font-size: 8px; margin-right: 3px; flex-shrink: 0; color: rgba(0,0,0,.6); }
+.clipRight { font-size: 8px; margin-left:  3px; flex-shrink: 0; color: rgba(0,0,0,.6); }
+
+/* ── Tooltip ── */
+
+/**
+ * .tooltip — hover card showing full task details.
+ * position:absolute relative to .barArea.
+ * top:100% positions it below the bar row.
+ * z-index:100 ensures it renders above everything including sticky header.
+ * pointer-events:none — tooltip is display-only, doesn't block interactions.
+ */
+.tooltip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--txt2);
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  pointer-events: none;
+  animation: fadeIn .1s ease;
+}
+.tooltip strong { color: var(--txt); font-size: 13px; margin-bottom: 2px; }
+
+/* ── Empty / no scheduled state ── */
+.noScheduled {
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--txt3);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  margin: 16px 0;
+}
+
+/* ── Unscheduled section ── */
+.unscheduledSection {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.unscheduledHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 12px;
+}
+.unscheduledHint { font-weight: 400; text-transform: none; color: var(--txt3); letter-spacing: 0; }
+
+.unscheduledList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unscheduledPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  color: var(--txt2);
+}
+
+/** Priority badge inside unscheduled pills */
+.priTag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+.priTag.high { background: rgba(248,113,113,.12); color: var(--red); }
+.priTag.med  { background: rgba(251,191,36,.10);  color: var(--amber); }
+.priTag.low  { background: rgba(74,222,128,.10);  color: var(--green); }
+
+/* ── Loading state ── */
+.loadingWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.loadingPulse {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+.loadingText { font-size: 13px; color: var(--txt3); }
+
+/* ── Empty state ── */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ── Animations ── */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(248,113,113,.4); }
+  50%       { box-shadow: 0 0 0 3px rgba(248,113,113,.2); }
+}
+@keyframes spin   { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }

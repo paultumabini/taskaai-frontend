@@ -1,0 +1,47 @@
+/**
+ * App.module.css — top-level layout shell
+ *
+ * Layout strategy:
+ *   The shell is a flex row. The sidebar animates its width via CSS transition.
+ *   The main area uses flex:1 to fill all remaining space automatically.
+ *
+ * Why overflow:hidden on sidebarWrap:
+ *   The Sidebar is drawn at full width; .sidebarOpen / .sidebarClosed only change
+ *   the wrapper’s width (220px vs 72px). overflow:hidden clips content during
+ *   the width transition so it does not overlap the main column.
+ *
+ * Why min-width:0 on .main:
+ *   By default, flex children have min-width:auto which prevents them from
+ *   shrinking below their content width. Setting min-width:0 allows the main
+ *   area to shrink properly when the sidebar is open.
+ */
+
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── Sidebar wrapper — animates open/closed ── */
+
+.sidebarWrap {
+  flex-shrink: 0;
+  overflow: hidden;                        /* clips sidebar during collapse animation */
+  transition: width .25s cubic-bezier(.4, 0, .2, 1);  /* smooth ease-in-out feel */
+}
+
+/** Open state — full 220px sidebar visible */
+.sidebarOpen  { width: 220px; }
+
+/** Collapsed state — mini icon-only sidebar */
+.sidebarClosed { width: 72px; }
+
+/* ── Main content area ── */
+
+.main {
+  flex: 1;
+  min-width: 0;      /* prevents flex overflow — allows content to shrink */
+  overflow: hidden;
+  position: relative;
+}

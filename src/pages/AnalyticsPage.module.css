@@ -1,0 +1,226 @@
+/**
+ * AnalyticsPage.module.css
+ *
+ * Styles scoped to the analytics route.
+ *
+ * Sections:
+ *  - Page shell and topbar
+ *  - KPI cards row
+ *  - Chart grid/cards
+ *  - Status donut custom layout (left legend + right chart)
+ */
+
+/* ── Page shell ───────────────────────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* Topbar with page title + theme toggle control */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pageTitle { font-size: 22px; font-weight: 500; }
+
+/* Shared icon-only button style (theme toggle in analytics topbar) */
+.iconBtn {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt2);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  transition: all .15s;
+}
+.iconBtn:hover {
+  color: var(--accent2);
+  border-color: var(--accent);
+  background: var(--bg3);
+}
+
+/* Empty/loading state placeholder when data is not ready */
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt3);
+  font-size: 14px;
+}
+
+/* ── KPI cards row ────────────────────────────────────────────────────────── */
+.kpiRow {
+  display: flex;
+  gap: 14px;
+  padding: 20px 28px 0;
+  flex-wrap: wrap;
+}
+
+/* Individual KPI card with accent stripe rendered by ::before */
+.kpi {
+  flex: 1;
+  min-width: 130px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Thin top accent stripe (color injected via CSS variable from JSX) */
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--kpi-accent);
+}
+
+/* Small uppercase KPI label */
+.kpiLabel {
+  font-size: 11px;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-weight: 500;
+}
+
+/* Primary KPI value */
+.kpiVal {
+  font-size: 26px;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: -.5px;
+}
+
+/* ── Charts grid/cards ────────────────────────────────────────────────────── */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 28px 28px;
+}
+
+/* Card shell for each chart region */
+.chartCard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+/* Wide card spans both columns (used by 7-day trend line chart) */
+.chartCard.wide {
+  grid-column: 1 / -1;
+}
+
+/* Compact uppercase card title */
+.chartTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 16px;
+}
+
+/* Relative wrapper to support chart overlays/plugins if needed */
+.chartWrap { position: relative; }
+
+/* ── Status donut custom layout (left labels + right chart) ──────────────── */
+
+/**
+ * Two-column area inside "Tasks by Status":
+ * - left: readable status label list
+ * - right: donut chart + external callout labels drawn by chart plugin
+ */
+.statusCardBody {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+/* Left status list, anchored under chart title */
+.statusLegend {
+  width: 30%;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+/* One status row: left label cluster + right numeric value */
+.statusLegendItem {
+  display: grid;
+  grid-template-columns: 88px 3ch;
+  align-items: center;
+  column-gap: 8px;
+  font-size: 12.5px;
+  color: var(--txt2);
+}
+
+.statusLegendLabelWrap {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Color key dot matching donut segment color */
+.statusLegendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, .15);
+}
+
+/* Flexible label text area */
+.statusLegendText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusLegendValue {
+  text-align: right;
+  font-weight: 600;
+  color: var(--txt1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Right donut container: fills remaining width and keeps chart centered */
+.statusDonutWrap {
+  flex: 1;
+  min-width: 260px;
+  height: 260px;
+  position: relative;
+}
+
+/* Stack status legend above donut on narrower screens */
+@media (max-width: 980px) {
+  .statusCardBody {
+    flex-direction: column;
+  }
+  .statusLegend {
+    width: 100%;
+  }
+  .statusDonutWrap {
+    min-width: 0;
+  }
+}

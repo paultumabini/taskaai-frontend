@@ -1,0 +1,375 @@
+/**
+ * Sidebar.module.css — sidebar navigation styles
+ *
+ * Key layout decisions:
+ *
+ * 1. Fixed width (220px) — the sidebar never resizes itself.
+ *    The parent sidebarWrap div in App.jsx animates the width to 0.
+ *    overflow:hidden on the wrapper clips this 220px sidebar during the animation.
+ *
+ * 2. Footer always at bottom — achieved with margin-top:auto on .footer.
+ *    The sidebar is a flex column, so the last flex child with margin-top:auto
+ *    pushes itself to the bottom of the available space.
+ *
+ * 3. Project edit button hidden until hover — opacity:0 by default,
+ *    opacity:1 on .projectItem:hover. This keeps the UI clean but the
+ *    feature accessible without a dedicated settings panel.
+ *
+ * 4. Nav active state — react-router-dom NavLink adds the 'active' class.
+ *    We use a subtle accent-glow background and accent text colour to indicate
+ *    the current page without being visually heavy.
+ */
+
+/* ── Sidebar container ── */
+.sidebar {
+  width: 220px;
+  min-width: 220px;        /* prevents the sidebar from compressing inside the wrapper */
+  height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 0;
+  overflow: hidden;        /* clips long project names at the edge */
+}
+.sidebar.collapsed {
+  width: 72px;
+  min-width: 72px;
+  align-items: center;
+}
+
+/* ── Logo row ── */
+
+/**
+ * .logoRow — flex row containing logo icon, wordmark, and X close button.
+ * The X button (closeBtn) is pushed to the far right via margin-left:auto.
+ */
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 22px 18px;
+}
+.collapsed .logoRow {
+  padding: 0 0 18px;
+  justify-content: center;
+}
+
+/** Purple rounded square containing the wordmark icon */
+.logoIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoName {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--txt);
+  flex: 1;
+  white-space: nowrap;
+}
+.logoName span { color: var(--accent2); }  /* 'AI' suffix in accent colour */
+
+/**
+ * .closeBtn — X button to collapse the sidebar.
+ * Appears at the far right of the logo row.
+ * Uses stroke-based X icon so it scales cleanly at any size.
+ */
+.closeBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: all .15s;
+}
+.closeBtn:hover {
+  background: var(--bg3);
+  color: var(--accent2);
+}
+
+/* ── Section labels ── */
+
+/** ALL-CAPS small label used above nav groups and the projects list */
+.sectionLabel {
+  padding: 0 20px 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--txt3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  display: block;
+}
+
+/* ── Navigation items ── */
+
+/**
+ * .navItem — used by both NavLink (workspace nav) and button (project rows).
+ * text-decoration:none removes the default link underline from NavLink.
+ * The active state is applied by NavLink automatically when the route matches.
+ */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  margin: 1px 8px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: var(--txt2);
+  background: none;
+  border: none;
+  width: calc(100% - 16px);
+  text-align: left;
+  cursor: pointer;
+  transition: all .12s;
+  text-decoration: none;     /* removes default link underline */
+}
+.collapsed .navItem {
+  width: 42px;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  margin: 2px 0;
+}
+.navItem:hover  { background: var(--bg3); color: var(--txt); }
+
+/**
+ * .active — applied by NavLink when the route matches.
+ * --ag is rgba(124,106,247,.18) — a subtle tinted background.
+ */
+.navItem.active {
+  background: var(--ag);
+  color: var(--accent2);
+  font-weight: 500;
+}
+.navItem svg     { flex-shrink: 0; opacity: .7; }
+.navItem.active svg { opacity: 1; }
+
+/* ── Projects section ── */
+
+/** Header row for the Projects section — label + '+' button side by side */
+.projectsHeader {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 5px 20px;
+  margin-top: 12px;
+}
+
+/** Small + button to create a new project */
+.addProjectBtn {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all .12s;
+}
+.addProjectBtn:hover { background: var(--bg3); color: var(--accent2); }
+
+/** Each project is a flex row containing the select button + edit button */
+.projectItem {
+  display: flex;
+  align-items: center;
+  margin: 1px 8px;
+  border-radius: 7px; 
+  position: relative;
+  transition: background .12s;
+}
+.projectItem:hover  { background: var(--bg3); }
+.projectItem.active {
+  background: linear-gradient(90deg, rgba(124, 106, 247, .28), rgba(124, 106, 247, .12));  
+  box-shadow: inset 0 0 0 .5px rgba(124, 106, 247, .16), 0 2px 8px rgba(124, 106, 247, .08);
+}
+.projectItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent2);
+}
+
+/** Left part of the project row — colour dot + project name */
+.projectBtn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13.5px;
+  color: var(--txt2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;    /* required for text-overflow:ellipsis to work on a flex child */
+}
+.projectItem.active .projectBtn { color: var(--txt); font-weight: 600; }
+.projectItem.active .projectName {
+  color: var(--txt);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .18);  /* improves contrast on accent gradient */
+}
+
+/** Small coloured circle that identifies the project */
+.colorDot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/**
+ * .projectName — truncates with ellipsis if the project name is too long.
+ * overflow:hidden + text-overflow:ellipsis + white-space:nowrap work together —
+ * all three are required for ellipsis truncation in a flex child.
+ */
+.projectName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/**
+ * .editProjectBtn — pencil icon to edit a project.
+ * Hidden (opacity:0) by default, shown on row hover.
+ * This keeps the sidebar clean while keeping the action accessible.
+ * pointer-events:none when hidden prevents accidental clicks via keyboard.
+ */
+.editProjectBtn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all .12s;
+  margin-right: 4px;
+}
+.projectItem:hover .editProjectBtn {
+  opacity: 1;
+  pointer-events: all;
+}
+.editProjectBtn:hover { background: var(--bg4); color: var(--txt); }
+
+/** Dashed placeholder button when no projects exist yet */
+.emptyProjects {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 2px 8px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  color: var(--accent2);
+  background: none;
+  border: 1px dashed rgba(124, 106, 247, .3);
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+}
+.emptyProjects:hover { background: var(--ag); }
+
+/* ── Footer ── */
+
+/**
+ * .footer — user row pinned to the bottom of the sidebar.
+ * margin-top:auto on a flex child pushes it to the end of the flex container.
+ */
+.footer {
+  margin-top: auto;
+  padding: 14px 10px 0;
+  border-top: 1px solid var(--border);
+}
+.collapsed .footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px;
+  border-radius: 7px;
+}
+.collapsed .userRow {
+  padding: 6px 0;
+  gap: 0;
+  flex-direction: column;
+}
+
+.avatarBtn {
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+}
+.avatarBtn:focus-visible .avatar,
+.avatarBtn:hover .avatar {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/**
+ * .avatar — user initials circle.
+ * Linear gradient background creates the purple-to-violet effect.
+ * The gradient direction (135deg) gives a pleasant diagonal look.
+ */
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #c084fc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.userInfo { flex: 1; min-width: 0; }
+.userName {
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.userRole { font-size: 10.5px; color: var(--txt3); }
+
+.logoutBtn {
+  flex-shrink: 0;
+  color: var(--txt3);
+  padding: 4px;
+  border-radius: 6px;
+  transition: all .15s;
+}
+.logoutBtn:hover { color: var(--red); background: rgba(248, 113, 113, .1); }
+.collapsed .logoutBtn {
+  margin-top: 6px;
+}

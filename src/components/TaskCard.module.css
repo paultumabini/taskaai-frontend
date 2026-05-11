@@ -1,0 +1,190 @@
+/**
+ * TaskCard.module.css
+ *
+ * Visual states for task cards: hover, drag, AI highlight, action menu.
+ */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: border-color .15s, box-shadow .15s;
+  position: relative;
+  z-index: 0;
+  animation: fadeSlide .2s ease both;
+  cursor: grab;
+}
+/* Lift the card above its siblings while its move menu is open */
+.card.menuOpen { z-index: 10; }
+.card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.card.aiHighlight {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(124,106,247,.18);
+}
+.card.dragging {
+  opacity: .45;
+  cursor: grabbing;
+}
+
+.aiBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(124,106,247,.15);
+  color: var(--accent2);
+  border: 1px solid rgba(124,106,247,.25);
+  margin-bottom: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  flex: 1;
+  color: var(--txt);
+}
+
+.pri {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.pri.high { background: rgba(248,113,113,.12); color: var(--red); }
+.pri.med  { background: rgba(251,191,36,.10);  color: var(--amber); }
+.pri.low  { background: rgba(74,222,128,.10);  color: var(--green); }
+.priDot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.desc {
+  font-size: 12px;
+  color: var(--txt3);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.tag {
+  font-size: 10.5px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: var(--bg4);
+  color: var(--txt2);
+  border: 1px solid var(--border);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.due {
+  font-size: 11px;
+  color: var(--txt3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+.due.overdue { color: var(--red); }
+
+/* Action buttons — show on hover */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.card:hover .actions { opacity: 1; }
+
+.actionBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.actionBtn:hover { background: var(--bg3); color: var(--txt); }
+.deleteBtn:hover { color: var(--red); background: rgba(248,113,113,.12); }
+
+/* Move menu wrapper — must be position:relative so menu can position itself */
+.moveWrap { position: relative; }
+
+/* The dropdown — fixed width, always fully visible */
+.moveMenu {
+  position: absolute;
+  right: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 4px;
+  width: 168px;
+  z-index: 200;
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+}
+/* Open downward (default) */
+.menuDown { top: calc(100% + 6px); }
+/* Open upward when near bottom of screen */
+.menuUp   { bottom: calc(100% + 6px); }
+
+.moveItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  color: var(--txt2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all .12s;
+}
+.moveItem:hover { background: var(--bg3); color: var(--txt); }
+.moveItem.moveItemActive { color: var(--accent2); font-weight: 500; }
+
+.moveDot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+.currentLabel {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--txt3);
+  font-weight: 400;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
